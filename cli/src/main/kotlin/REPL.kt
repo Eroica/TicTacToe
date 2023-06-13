@@ -28,14 +28,23 @@ class SetupRepl(
                     println("There is a previous game for player ${player1.name}. Restart it? (y/n)")
 
                     when (readlnOrNull()) {
-                        "y", "Y" -> CliTicTacToe(
-                            PersistedTicTacToe(
-                                player1.id,
-                                database,
-                                TicTacToe(player1, player2, games[player1.id]),
-                                games
+                        "y", "Y" -> {
+                            val previousState = games[player1.id]
+                            CliTicTacToe(
+                                PersistedTicTacToe(
+                                    player1.id,
+                                    database,
+                                    TicTacToe(
+                                        player1,
+                                        player2,
+                                        if (previousState.currentPlayer == 1) player1 else player2,
+                                        previousState.board
+                                    ),
+                                    games
+                                )
                             )
-                        )
+                        }
+
                         else -> CliTicTacToe(
                             PersistedTicTacToe(
                                 player1.id,
@@ -104,6 +113,8 @@ class LoginRepl(database: Database) {
 class TicTacToeRepl(
     private val game: CliTicTacToe,
 ) {
+    private var currentPlayer = game.currentPlayer
+
     fun start() {
         try {
             while (true) {
@@ -111,17 +122,11 @@ class TicTacToeRepl(
                 println("")
                 println(game.draw())
                 println("")
-                println("Current player is ${game.player1.name}.")
-                game.player1.turn(game)
+                println("Current player is ${currentPlayer.name}.")
+                currentPlayer.turn(game)
                 println("")
 
-                println("Current board:")
-                println("")
-                println(game.draw())
-                println("")
-                println("Current player is ${game.player2.name}.")
-                game.player2.turn(game)
-                println("")
+                currentPlayer = if (currentPlayer == game.player1) game.player2 else game.player1
             }
         } catch (e: GameEnd) {
             println("Current board:")
