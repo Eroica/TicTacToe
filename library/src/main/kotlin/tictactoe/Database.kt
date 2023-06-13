@@ -3,8 +3,8 @@ import java.nio.file.Path
 import java.sql.Connection
 import java.sql.DriverManager
 
-class Database(private val home: Path, uri: String) {
-    private val connection = DriverManager.getConnection("jdbc:sqlite:${uri}?foreign_keys=on") as SQLiteConnection
+class Database(location: Path, name: String) {
+    private val connection = DriverManager.getConnection("jdbc:sqlite:${location.resolve(name)}?foreign_keys=on") as SQLiteConnection
 
     init {
         when (connection.getVersion()) {
