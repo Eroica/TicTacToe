@@ -3,7 +3,7 @@ import java.nio.file.Path
 import java.sql.Connection
 import java.sql.DriverManager
 
-class Database(location: Path, name: String) {
+class Database(location: Path, name: String): AutoCloseable {
     private val connection = DriverManager.getConnection("jdbc:sqlite:${location.resolve(name)}?foreign_keys=on") as SQLiteConnection
 
     init {
@@ -11,6 +11,10 @@ class Database(location: Path, name: String) {
             0 -> initialize()
             /* Place for migrations */
         }
+    }
+
+    override fun close() {
+        connection.close()
     }
 
     private fun initialize() {
