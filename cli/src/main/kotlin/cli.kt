@@ -3,7 +3,7 @@ import tictactoe.ITicTacToe
 import tictactoe.InvalidTurn
 
 class CliTicTacToe(private val game: ITicTacToe) : ITicTacToe by game {
-    val signs = mapOf(
+    private val signs = mapOf(
         1 to "x",
         2 to "o"
     )
@@ -27,14 +27,15 @@ class CliTicTacToe(private val game: ITicTacToe) : ITicTacToe by game {
     }
 }
 
-class CliPlayer(override val name: String = "Guest") : IPlayer {
+data class CliPlayer(
+    val id: Int,
+    override val name: String
+) : IPlayer {
     override fun turn(game: ITicTacToe) {
         turn(game as CliTicTacToe)
     }
 
     private fun turn(game: CliTicTacToe) {
-        println("Current player is $name.")
-
         while (true) {
             println("Choose a cell (${game.availableCells().joinToString()}):")
 

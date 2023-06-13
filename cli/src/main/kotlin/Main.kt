@@ -1,9 +1,13 @@
-import tictactoe.TicTacToe
+import tictactoe.PersistedGames
+import kotlin.io.path.Path
 
 fun main() {
-    val game = CliTicTacToe(TicTacToe(CliPlayer("Player 1"), CliPlayer("Player 2")))
-    val repl = REPL(game)
-
     println("Welcome to a game of Tic-tac-toe!")
-    repl.start()
+
+    Database(Path(""), "tictactoe.db").use { database ->
+        val previousGames = PersistedGames(database)
+        val game = SetupRepl(previousGames, database).setup()
+
+        TicTacToeRepl(game).start()
+    }
 }
