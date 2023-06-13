@@ -2,6 +2,7 @@ import org.sqlite.SQLiteConnection
 import java.nio.file.Path
 import java.sql.Connection
 import java.sql.DriverManager
+import java.sql.PreparedStatement
 
 class Database(location: Path, name: String): AutoCloseable {
     private val connection = DriverManager.getConnection("jdbc:sqlite:${location.resolve(name)}?foreign_keys=on") as SQLiteConnection
@@ -15,6 +16,10 @@ class Database(location: Path, name: String): AutoCloseable {
 
     override fun close() {
         connection.close()
+    }
+
+    fun statement(sql: String): PreparedStatement {
+        return connection.prepareStatement(sql)
     }
 
     private fun initialize() {

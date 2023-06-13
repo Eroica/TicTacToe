@@ -15,8 +15,49 @@ class ComputerPlayer : IPlayer {
     }
 }
 
-abstract class PersistedPlayer(
-    val id: Int,
-    private val database: Database,
-    player: IPlayer
-) : IPlayer by player
+class PersistedPlayers(private val database: Database) {
+    operator fun get(id: Int): String {
+        return database.statement("""SELECT name FROM player WHERE id=?""").use {
+            it.setInt(1, id)
+            it.executeQuery().use {
+                it.getString(1)
+            }
+        }
+    }
+
+    fun create(name: String): Int {
+        return database.statement("""INSERT INTO player (name) VALUES (?)""").use {
+            it.setString(1, name)
+            it.executeUpdate()
+            it.generatedKeys.use {
+                it.getInt(1)
+            }
+        }
+    }
+
+    fun all(): List<Int> {
+        return database.statement("""SELECT id FROM player""").use {
+            it.executeQuery().use {
+                it.use {
+                    generateSequence {
+                        if (it.next()) it.getInt(1) else null
+                    }.toList()
+                }
+            }
+        }
+    }
+
+    fun table(): String {
+        val players = database.statement("SELECT id, name FROM player").use {
+            it.executeQuery().use {
+                it.use {
+                    generateSequence {
+                        if (it.next()) Pair(it.getInt(1), it.getString(2)) else null
+                    }.toMap()
+                }
+            }
+        }
+
+        return players.map { "${it.key}: ${it.value}" }.joinToString("\n")
+    }
+}

@@ -18,30 +18,50 @@ interface ITicTacToe {
     fun checkGameEnd()
     fun turnFor(player: IPlayer, position: Int)
     fun availableCells(): List<Int>
+    fun finish() = Unit
 }
 
 class TicTacToe(
     override val player1: IPlayer,
-    override val player2: IPlayer
+    override val player2: IPlayer,
+    override val board: Array<Int>
 ) : ITicTacToe {
-    val playerSigns = mapOf(
+    companion object {
+        fun hasWon(player: Int, board: Array<Int>): Boolean {
+            return arrayOf(0, 1, 2).all { board[it] == player }
+                || arrayOf(3, 4, 5).all { board[it] == player }
+                || arrayOf(6, 7, 8).all { board[it] == player }
+                || arrayOf(0, 3, 6).all { board[it] == player }
+                || arrayOf(1, 4, 7).all { board[it] == player }
+                || arrayOf(2, 5, 8).all { board[it] == player }
+                || arrayOf(0, 4, 8).all { board[it] == player }
+                || arrayOf(2, 4, 6).all { board[it] == player }
+        }
+    }
+
+    /* Constructor for new games (no cell set) */
+    constructor(player1: IPlayer, player2: IPlayer): this(
+        player1,
+        player2,
+        /* 0 | 1 | 2
+         * 3 | 4 | 5
+         * 6 | 7 | 8 */
+        arrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0)
+    )
+
+    private val playerSigns = mapOf(
         player1 to 1,
         player2 to 2
     )
 
-    /* 0 | 1 | 2
-     * 3 | 4 | 5
-     * 6 | 7 | 8 */
-    override val board = arrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0)
-
     override fun serialize(): JSONObject {
-        return JSONObject(mapOf(board to JSONArray(board)))
+        return JSONObject(mapOf("board" to JSONArray(board)))
     }
 
     override fun checkGameEnd() {
-        if (hasWon(player1)) {
+        if (hasWon(playerSigns.getValue(player1), board)) {
             throw GameEnd(player1)
-        } else if (hasWon(player2)) {
+        } else if (hasWon(playerSigns.getValue(player2), board)) {
             throw GameEnd(player2)
         } else if (isDraw()) {
             throw GameDraw
@@ -66,22 +86,61 @@ class TicTacToe(
          * after checking each player's win condition. */
         return board.all { it != 0 }
     }
-
-    private fun hasWon(player: IPlayer): Boolean {
-        val sign = playerSigns[player]
-        return arrayOf(0, 1, 2).all { board[it] == sign }
-            || arrayOf(3, 4, 5).all { board[it] == sign }
-            || arrayOf(6, 7, 8).all { board[it] == sign }
-            || arrayOf(0, 3, 6).all { board[it] == sign }
-            || arrayOf(1, 4, 7).all { board[it] == sign }
-            || arrayOf(2, 5, 8).all { board[it] == sign }
-            || arrayOf(0, 4, 8).all { board[it] == sign }
-            || arrayOf(2, 4, 6).all { board[it] == sign }
-    }
 }
 
 class PersistedTicTacToe(
+    val playerId: Int,
+    private val database: Database,
     private val game: ITicTacToe,
-    private val database: Database
+    private val persistedGames: PersistedGames
 ) : ITicTacToe by game {
+    override fun turnFor(player: IPlayer, position: Int) {
+        game.turnFor(player, position)
+
+        database.statement("""INSERT OR IGNORE INTO game (id, player_id, state) VALUES (?, ?, ?)""").use {
+            it.setInt(1, playerId)
+            it.setInt(2, playerId)
+            it.setString(3, game.serialize().toString())
+            it.executeUpdate()
+        }
+        database.statement("""UPDATE game SET state=? WHERE player_id=?""").use {
+            it.setString(1, game.serialize().toString())
+            it.setInt(2, playerId)
+            it.executeUpdate()
+        }
+    }
+
+    override fun finish() {
+        super.finish()
+        persistedGames.delete(playerId)
+    }
+}
+
+class PersistedGames(
+    private val database: Database
+) {
+    operator fun contains(playerId: Int): Boolean {
+        return database.statement("""SELECT EXISTS(SELECT 1 FROM game WHERE player_id=?)""").use {
+            it.setInt(1, playerId)
+            it.executeQuery().use {
+                it.getInt(1) == 1
+            }
+        }
+    }
+
+    operator fun get(playerId: Int): Array<Int> {
+        return database.statement("""SELECT json_extract(state, '$.board') FROM game WHERE player_id=?""").use {
+            it.setInt(1, playerId)
+            it.executeQuery().use {
+                JSONArray(it.getString(1)).map { it.toString().toInt() }.toTypedArray()
+            }
+        }
+    }
+
+    fun delete(playerId: Int) {
+        database.statement("""DELETE FROM game WHERE player_id=?""").use {
+            it.setInt(1, playerId)
+            it.executeUpdate()
+        }
+    }
 }
