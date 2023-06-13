@@ -18,6 +18,36 @@ class Database(location: Path, name: String): AutoCloseable {
     }
 
     private fun initialize() {
+        connection.createStatement().use {
+            it.execute("""
+                CREATE TABLE player (
+                    id INTEGER PRIMARY KEY,
+                    name VARCHAR NOT NULL
+                )
+            """.trimIndent())
+        }
+        connection.createStatement().use {
+            it.execute("""
+                CREATE TABLE game (
+                    id INTEGER PRIMARY KEY,
+                    player_id INTEGER NOT NULL,
+                    state VARCHAR NOT NULL,
+                    updated_on DATETIME default (datetime(current_timestamp)),
+                    FOREIGN KEY (player_id) REFERENCES player (id)
+                        ON DELETE CASCADE
+                )
+            """.trimIndent())
+        }
+        connection.createStatement().use {
+            it.execute("""
+                CREATE TABLE highscore (
+                    player_id INTEGER NOT NULL,
+                    wins INTEGER NOT NULL DEFAULT 0,
+                    FOREIGN KEY (player_id) REFERENCES player (id)
+                        ON DELETE CASCADE
+                )
+            """.trimIndent())
+        }
         connection.setVersion(1)
     }
 }
