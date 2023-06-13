@@ -12,6 +12,7 @@ class GameEnd(val winner: IPlayer): Exception()
 interface ITicTacToe {
     val player1: IPlayer
     val player2: IPlayer
+    var currentPlayer: IPlayer
     val board: Array<Int>
 
     fun serialize(): JSONObject
@@ -24,6 +25,7 @@ interface ITicTacToe {
 class TicTacToe(
     override val player1: IPlayer,
     override val player2: IPlayer,
+    override var currentPlayer: IPlayer,
     override val board: Array<Int>
 ) : ITicTacToe {
     companion object {
@@ -43,6 +45,7 @@ class TicTacToe(
     constructor(player1: IPlayer, player2: IPlayer): this(
         player1,
         player2,
+        player1,
         /* 0 | 1 | 2
          * 3 | 4 | 5
          * 6 | 7 | 8 */
@@ -55,7 +58,10 @@ class TicTacToe(
     )
 
     override fun serialize(): JSONObject {
-        return JSONObject(mapOf("board" to JSONArray(board)))
+        return JSONObject(mapOf(
+            "player" to playerSigns.getValue(currentPlayer),
+            "board" to JSONArray(board))
+        )
     }
 
     override fun checkGameEnd() {
@@ -75,6 +81,8 @@ class TicTacToe(
 
         board[position - 1] = playerSigns[player] ?: throw InvalidTurn
         checkGameEnd()
+
+        currentPlayer = if (currentPlayer == player1) player2 else player1
     }
 
     override fun availableCells(): List<Int> {
@@ -89,7 +97,7 @@ class TicTacToe(
 }
 
 class PersistedTicTacToe(
-    val playerId: Int,
+    private val playerId: Int,
     private val database: Database,
     private val game: ITicTacToe,
     private val persistedGames: PersistedGames
@@ -116,6 +124,8 @@ class PersistedTicTacToe(
     }
 }
 
+data class GameState(val currentPlayer: Int, val board: Array<Int>)
+
 class PersistedGames(
     private val database: Database
 ) {
@@ -128,11 +138,15 @@ class PersistedGames(
         }
     }
 
-    operator fun get(playerId: Int): Array<Int> {
-        return database.statement("""SELECT json_extract(state, '$.board') FROM game WHERE player_id=?""").use {
+    operator fun get(playerId: Int): GameState {
+        return database.statement("""SELECT state FROM game WHERE player_id=?""").use {
             it.setInt(1, playerId)
             it.executeQuery().use {
-                JSONArray(it.getString(1)).map { it.toString().toInt() }.toTypedArray()
+                val jsonState = JSONObject(it.getString(1))
+                GameState(
+                    jsonState.getInt("player"),
+                    jsonState.getJSONArray("board").map { it.toString().toInt() }.toTypedArray()
+                )
             }
         }
     }
