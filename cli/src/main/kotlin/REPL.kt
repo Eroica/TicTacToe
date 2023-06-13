@@ -96,7 +96,7 @@ class LoginRepl(database: Database) {
 
     private fun create() {
         println("Create a new player (name):")
-        val name = readlnOrNull() ?: "Player 1"
+        val name = readlnOrNull() ?: "Player ${players.all().max() + 1}"
         players.create(name)
     }
 }
