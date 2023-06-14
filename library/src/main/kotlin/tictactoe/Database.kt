@@ -52,7 +52,7 @@ class Database private constructor(uri: String): AutoCloseable {
         }
         connection.createStatement().use {
             it.execute("""
-                CREATE TABLE highscore (
+                CREATE TABLE leaderboard (
                     player_id INTEGER NOT NULL,
                     wins INTEGER NOT NULL DEFAULT 0,
                     FOREIGN KEY (player_id) REFERENCES player (id)
