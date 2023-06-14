@@ -2,6 +2,7 @@ import tictactoe.*
 
 class SetupRepl(
     private val games: PersistedGames,
+    private val leaderboard: Leaderboard,
     private val database: Database
 ) {
     fun setup(): CliTicTacToe {
@@ -40,7 +41,8 @@ class SetupRepl(
                                         if (previousState.currentPlayer == 1) player1 else player2,
                                         previousState.board
                                     ),
-                                    games
+                                    games,
+                                    leaderboard
                                 )
                             )
                         }
@@ -50,7 +52,8 @@ class SetupRepl(
                                 player1.id,
                                 database,
                                 TicTacToe(player1, player2),
-                                games
+                                games,
+                                leaderboard
                             )
                         )
                     }
@@ -61,7 +64,8 @@ class SetupRepl(
                             player1.id,
                             database,
                             TicTacToe(player1, player2),
-                            games
+                            games,
+                            leaderboard
                         )
                     )
                 }
