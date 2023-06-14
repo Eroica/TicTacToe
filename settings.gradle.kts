@@ -1,3 +1,3 @@
 
 rootProject.name = "TicTacToe"
-include("library", "cli")
+include("library", "cli", "gui")
