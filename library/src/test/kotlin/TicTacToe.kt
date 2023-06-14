@@ -2,6 +2,7 @@ import org.junit.jupiter.api.*
 import tictactoe.*
 
 private class DummyPlayer : IPlayer {
+    override val id: Int = -1
     override val name = "Dummy"
 
     override fun turn(game: ITicTacToe) {}

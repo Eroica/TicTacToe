@@ -1,14 +1,17 @@
 package tictactoe
 
 import Database
+import GUEST_PLAYER_ID
 
 interface IPlayer {
+    val id: Int
     val name: String
     fun turn(game: ITicTacToe)
 }
 
 /* CPU player adapted from https://github.com/mariscallzn/KotlinTicTacToe */
 class ComputerPlayer(private val playerId: Int) : IPlayer {
+    override val id: Int = 1
     override val name: String = "CPU"
 
     private val opposingPlayer = if (playerId == 1) 2 else 1
@@ -166,17 +169,27 @@ class PersistedPlayers(private val database: Database) {
     }
 
     fun create(name: String): Int {
-        return database.statement("""INSERT INTO player (name) VALUES (?)""").use {
+        val newId = database.statement("""INSERT INTO player (name) VALUES (?)""").use {
             it.setString(1, name)
             it.executeUpdate()
             it.generatedKeys.use {
                 it.getInt(1)
             }
         }
+
+        database.statement("""INSERT INTO leaderboard (player_id, wins) VALUES (?, ?)""").use {
+            it.setInt(1, newId)
+            it.setInt(2, 0)
+            it.executeUpdate()
+        }
+
+        return newId
     }
 
     fun all(): List<Int> {
-        return database.statement("""SELECT id FROM player""").use {
+        /* CPU and a "Guest" player is part of the player table by default, so skip them here */
+        return database.statement("""SELECT id FROM player WHERE id>?""").use {
+            it.setInt(1, GUEST_PLAYER_ID)
             it.executeQuery().use {
                 it.use {
                     generateSequence {
@@ -188,7 +201,8 @@ class PersistedPlayers(private val database: Database) {
     }
 
     fun table(): String {
-        val players = database.statement("SELECT id, name FROM player").use {
+        val players = database.statement("SELECT id, name FROM player WHERE id>?").use {
+            it.setInt(1, GUEST_PLAYER_ID)
             it.executeQuery().use {
                 it.use {
                     generateSequence {

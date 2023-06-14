@@ -1,10 +1,13 @@
 import org.sqlite.SQLiteConnection
+import tictactoe.PersistedPlayers
 import java.nio.file.Path
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.PreparedStatement
 
 private const val DB_NAME = "tictactoe.db"
+const val CPU_PLAYER_ID = 1
+const val GUEST_PLAYER_ID = 2
 
 class Database private constructor(uri: String): AutoCloseable {
     companion object {
@@ -60,6 +63,12 @@ class Database private constructor(uri: String): AutoCloseable {
                 )
             """.trimIndent())
         }
+
+        /* This currently adds 2 default players with ID 1 and 2, although these IDs are
+         * theoretically not enforced and only relies on the first SQLite key being 1. */
+        val players = PersistedPlayers(this)
+        players.create("CPU")
+        players.create("Guest")
         connection.setVersion(1)
     }
 }

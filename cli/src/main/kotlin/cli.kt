@@ -28,7 +28,7 @@ class CliTicTacToe(private val game: ITicTacToe) : ITicTacToe by game {
 }
 
 data class CliPlayer(
-    val id: Int,
+    override val id: Int,
     override val name: String
 ) : IPlayer {
     override fun turn(game: ITicTacToe) {
