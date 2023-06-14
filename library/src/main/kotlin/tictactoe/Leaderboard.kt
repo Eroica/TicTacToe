@@ -14,6 +14,7 @@ class LeaderboardPlayer(
             database.statement("""UPDATE leaderboard SET wins=? WHERE player_id=?""").use {
                 it.setInt(1, value)
                 it.setInt(2, id)
+                it.executeUpdate()
             }
         }
 }

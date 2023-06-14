@@ -7,7 +7,7 @@ import org.json.JSONObject
 object InvalidTurn: Exception()
 object InvalidPlayer: Exception()
 object GameDraw: Exception()
-class GameEnd(val winner: IPlayer): Exception()
+class GameEnd(val winner: IPlayer, val loser: IPlayer): Exception()
 
 interface ITicTacToe {
     val player1: IPlayer
@@ -66,9 +66,9 @@ class TicTacToe(
 
     override fun checkGameEnd() {
         if (hasWon(playerSigns.getValue(player1), board)) {
-            throw GameEnd(player1)
+            throw GameEnd(player1, player2)
         } else if (hasWon(playerSigns.getValue(player2), board)) {
-            throw GameEnd(player2)
+            throw GameEnd(player2, player1)
         } else if (isDraw()) {
             throw GameDraw
         }
@@ -100,10 +100,17 @@ class PersistedTicTacToe(
     private val playerId: Int,
     private val database: Database,
     private val game: ITicTacToe,
-    private val persistedGames: PersistedGames
+    private val persistedGames: PersistedGames,
+    private val leaderboard: Leaderboard
 ) : ITicTacToe by game {
     override fun turnFor(player: IPlayer, position: Int) {
-        game.turnFor(player, position)
+        try {
+            game.turnFor(player, position)
+        } catch (e: GameEnd) {
+            leaderboard[e.winner.id].wins += 1
+            leaderboard[e.loser.id].wins -= 1
+            throw e
+        }
 
         database.statement("""INSERT OR IGNORE INTO game (id, player_id, state) VALUES (?, ?, ?)""").use {
             it.setInt(1, playerId)
