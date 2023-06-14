@@ -4,7 +4,8 @@ import kotlin.io.path.Path
 fun main() {
     println("Welcome to a game of Tic-tac-toe!")
 
-    Database(Path(""), "tictactoe.db").use { database ->
+    /* Create database in current working directory */
+    Database.at(Path("")).use { database ->
         val previousGames = PersistedGames(database)
         val game = SetupRepl(previousGames, database).setup()
 

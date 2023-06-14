@@ -4,8 +4,15 @@ import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.PreparedStatement
 
-class Database(location: Path, name: String): AutoCloseable {
-    private val connection = DriverManager.getConnection("jdbc:sqlite:${location.resolve(name)}?foreign_keys=on") as SQLiteConnection
+private const val DB_NAME = "tictactoe.db"
+
+class Database private constructor(uri: String): AutoCloseable {
+    companion object {
+        fun at(dir: Path) = Database(dir.resolve(DB_NAME).toUri().toString())
+        fun memory() = Database(":memory:")
+    }
+
+    private val connection = DriverManager.getConnection("jdbc:sqlite:${uri}?foreign_keys=on") as SQLiteConnection
 
     init {
         when (connection.getVersion()) {
