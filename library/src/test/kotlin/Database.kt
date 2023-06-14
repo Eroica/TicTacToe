@@ -1,7 +1,5 @@
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.*
+import tictactoe.Leaderboard
 import tictactoe.PersistedPlayers
 import kotlin.test.assertEquals
 
@@ -9,11 +7,13 @@ import kotlin.test.assertEquals
 internal class DatabaseTests {
     private lateinit var database: Database
     private lateinit var players: PersistedPlayers
+    private lateinit var leaderboard: Leaderboard
 
     @BeforeEach
     fun setupDb() {
         database = Database.memory()
         players = PersistedPlayers(database)
+        leaderboard = Leaderboard(database)
     }
 
     @AfterEach
@@ -26,5 +26,11 @@ internal class DatabaseTests {
         assertEquals(0, players.all().size)
         players.create("Test player")
         assertEquals(1, players.all().size)
+    }
+
+    @Test
+    fun `Adding new player adds entry to leaderboard`() {
+        val id = players.create("Test player")
+        assertDoesNotThrow { leaderboard[id] }
     }
 }
