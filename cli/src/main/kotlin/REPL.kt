@@ -97,7 +97,7 @@ class LoginRepl(database: Database) {
                 "n" -> create()
                 "c" -> return ComputerPlayer(playerIndex)
                 else -> {
-                    playerInput?.toInt()?.let {
+                    playerInput?.toIntOrNull()?.let {
                         if (it in players.all()) {
                             return CliPlayer(it, players[it])
                         }
