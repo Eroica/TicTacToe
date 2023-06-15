@@ -28,3 +28,7 @@ tasks.test {
 kotlin {
     jvmToolchain(19)
 }
+
+tasks.named<JavaExec>("run") {
+    standardInput = System.`in`
+}
