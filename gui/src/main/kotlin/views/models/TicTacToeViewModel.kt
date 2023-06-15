@@ -2,14 +2,13 @@ package views.models
 
 import javafx.beans.property.ReadOnlyBooleanProperty
 import javafx.beans.property.ReadOnlyObjectProperty
+import javafx.beans.property.ReadOnlyStringProperty
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleObjectProperty
+import javafx.beans.property.SimpleStringProperty
 import javafx.collections.FXCollections
-import tictactoe.ComputerPlayer
-import tictactoe.IPlayer
-import tictactoe.ITicTacToe
-import tictactoe.TicTacToe
+import tictactoe.*
 
 object GameYield : Exception()
 
@@ -38,15 +37,15 @@ class TicTacToeViewModel(
     private val game: ITicTacToe
 ) {
     val cells = FXCollections.observableMap(mapOf(
-        TicTacToeCell.CELL_1 to "    ",
-        TicTacToeCell.CELL_2 to "    ",
-        TicTacToeCell.CELL_3 to "    ",
-        TicTacToeCell.CELL_4 to "    ",
-        TicTacToeCell.CELL_5 to "    ",
-        TicTacToeCell.CELL_6 to "    ",
-        TicTacToeCell.CELL_7 to "    ",
-        TicTacToeCell.CELL_8 to "    ",
-        TicTacToeCell.CELL_9 to "    ",
+        TicTacToeCell.CELL_1 to "0",
+        TicTacToeCell.CELL_2 to "0",
+        TicTacToeCell.CELL_3 to "0",
+        TicTacToeCell.CELL_4 to "0",
+        TicTacToeCell.CELL_5 to "0",
+        TicTacToeCell.CELL_6 to "0",
+        TicTacToeCell.CELL_7 to "0",
+        TicTacToeCell.CELL_8 to "0",
+        TicTacToeCell.CELL_9 to "0",
     ))
 
     private val currentPlayer = SimpleObjectProperty(player1)
@@ -57,15 +56,29 @@ class TicTacToeViewModel(
     fun getIsGameFinished() = isGameFinished.get()
     fun isGameFinishedProperty(): ReadOnlyBooleanProperty = isGameFinished
 
+    private val gameEndMessage = SimpleStringProperty("")
+    fun getGameEndMessage() = gameEndMessage.get()
+    fun gameEndMessageProperty(): ReadOnlyStringProperty = gameEndMessage
+
     fun select(cell: TicTacToeCell) {
-        (getCurrentPlayer() as? GuiPlayer)?.select(cell, game)
-        currentPlayer.set(if (currentPlayer.get() == player1) player2 else player1)
-        updateBoard()
-        loop()
+        try {
+            (getCurrentPlayer() as? GuiPlayer)?.select(cell, game)
+            currentPlayer.set(if (currentPlayer.get() == player1) player2 else player1)
+            updateBoard()
+            loop()
+        } catch (e: GameEndState) {
+            setGameEnd(e)
+        }
     }
 
     fun start() {
         loop()
+    }
+
+    private fun setGameEnd(e: GameEndState) {
+        updateBoard()
+        isGameFinished.set(true)
+        gameEndMessage.set(e.message)
     }
 
     private fun updateBoard() {
@@ -82,6 +95,8 @@ class TicTacToeViewModel(
                 currentPlayer.set(if (currentPlayer.get() == player1) player2 else player1)
             }
         } catch (_: GameYield) {
+        } catch (e: GameEndState) {
+            setGameEnd(e)
         }
     }
 }

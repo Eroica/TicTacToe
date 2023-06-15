@@ -14,23 +14,11 @@ import views.models.GuiPlayer
 import views.models.TicTacToeCell
 import views.models.TicTacToeViewModel
 
-class TicTacToeView() : VBox() {
+class TicTacToeView(val viewModel: TicTacToeViewModel) : VBox() {
     @FXML
     private lateinit var gridPane: GridPane
 
-    private val viewModel = SimpleObjectProperty<TicTacToeViewModel?>(null)
-    fun getViewModel() = viewModel.get()
-    fun setViewModel(value: TicTacToeViewModel) = viewModel.set(value)
-    fun viewModelProperty(): SimpleObjectProperty<TicTacToeViewModel?> = viewModel
-
-    private val isInactive = viewModel.isNull()
-    fun getIsActive() = isInactive.get()
-    fun isActiveProperty() = isInactive
-
-    private val currentPlayer = Bindings.`when`(viewModel.isNull)
-        .then("")
-        .otherwise(Bindings.selectString(viewModel, "currentPlayer", "name").concat("’s turn."))
-
+    private val currentPlayer = Bindings.selectString(viewModel, "currentPlayer", "name").concat("’s turn.")
     fun getCurrentPlayer() = currentPlayer.get()
     fun currentPlayerProperty() = currentPlayer
 
@@ -47,16 +35,17 @@ class TicTacToeView() : VBox() {
                 val button = Button("").apply {
                     userData = cell
                     setOnAction { onCellClick(it) }
-                    textProperty().bind(
-                        Bindings.`when`(viewModel.isNull)
-                            .then("")
-                            .otherwise(Bindings.createStringBinding({
-                                getViewModel()?.cells?.get(cell)
-                            }, viewModel, Bindings.select<ObservableMap<TicTacToeCell, String>>(viewModel, "cells")))
-                    )
+                    textProperty().bind(Bindings.stringValueAt(viewModel.cells, cell).map {
+                        when (it) {
+                            "1" -> "❌"
+                            "2" -> "⭕"
+                            else -> ""
+                        }
+                    })
+                    disableProperty().bind(Bindings.stringValueAt(viewModel.cells, cell).isNotEqualTo("0"))
                 }
 
-                gridPane.add(button, i, j)
+                gridPane.add(button, j, i)
             }
         }
     }
@@ -64,7 +53,6 @@ class TicTacToeView() : VBox() {
     @FXML
     private fun onCellClick(event: ActionEvent) {
         val cell = event.target as Button
-        getViewModel()?.select(cell.userData as TicTacToeCell)
-        cell.isDisable = true
+        viewModel.select(cell.userData as TicTacToeCell)
     }
 }

@@ -36,7 +36,8 @@ class AppWindow(val viewModel: AppWindowViewModel) : VBox() {
 
         if ((player1 is ComputerPlayer && player2 is GuiPlayer)
             || (player2 is ComputerPlayer && player1 is GuiPlayer)
-            || (player1 is ComputerPlayer && player2 is ComputerPlayer)) {
+            || (player1 is ComputerPlayer && player2 is ComputerPlayer)
+        ) {
             startButton.isDisable = false
         } else if (player1 is GuiPlayer && player2 is GuiPlayer) {
             startButton.isDisable = player1.id == player2.id
@@ -70,11 +71,15 @@ class AppWindow(val viewModel: AppWindowViewModel) : VBox() {
 
     @FXML
     private fun onStart(event: ActionEvent) {
+        startButton.isDisable = true
+        player1Selection.isDisable = true
+        player2Selection.isDisable = true
+
         val player1 = player1Selection.value
         val player2 = player2Selection.value
         val game = TicTacToe(player1, player2)
-        ticTacToeView.setViewModel(TicTacToeViewModel(player1, player2, game).also {
-            it.start()
-        })
+        val viewModel = TicTacToeViewModel(player1, player2, game)
+        children.add(TicTacToeView(viewModel))
+        viewModel.start()
     }
 }
