@@ -4,19 +4,12 @@ import javafx.beans.property.ReadOnlyBooleanProperty
 import javafx.beans.property.ReadOnlyObjectProperty
 import javafx.beans.property.ReadOnlyStringProperty
 import javafx.beans.property.SimpleBooleanProperty
-import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.collections.FXCollections
+import models.GameYield
+import models.TicTacToeCell
 import tictactoe.*
-
-object GameYield : Exception()
-
-enum class TicTacToeCell(val index: Int) {
-    CELL_1(1), CELL_2(2), CELL_3(3),
-    CELL_4(4), CELL_5(5), CELL_6(6),
-    CELL_7(7), CELL_8(8), CELL_9(9);
-}
 
 class GuiPlayer(
     override val id: Int,
