@@ -25,9 +25,6 @@ class AppWindow(val viewModel: AppWindowViewModel) : VBox() {
     @FXML
     private lateinit var startButton: Button
 
-    @FXML
-    private lateinit var ticTacToeView: TicTacToeView
-
     private val playerSelectionListener = InvalidationListener {
         val player1 = player1Selection.value
         val player2 = player2Selection.value
