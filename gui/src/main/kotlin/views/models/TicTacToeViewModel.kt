@@ -15,6 +15,9 @@ class GuiPlayer(
     override val id: Int,
     override val name: String,
 ) : IPlayer {
+    /* When playing the game in a GUI, the game loop is "event-based" instead of relying on
+     * polling (i.e. request the user's next move). So in this case, `turn` basically tells the
+     * game loop to do nothing (and wait) until it can be resumed with another interaction. */
     override fun turn(game: ITicTacToe) {
         throw GameYield
     }

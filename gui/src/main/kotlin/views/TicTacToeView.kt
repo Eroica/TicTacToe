@@ -1,17 +1,13 @@
 package views
 
 import javafx.beans.binding.Bindings
-import javafx.beans.property.SimpleObjectProperty
-import javafx.collections.FXCollections
-import javafx.collections.ObservableMap
 import javafx.event.ActionEvent
 import javafx.fxml.FXML
 import javafx.fxml.FXMLLoader
 import javafx.scene.control.Button
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.VBox
-import views.models.GuiPlayer
-import views.models.TicTacToeCell
+import models.TicTacToeCell
 import views.models.TicTacToeViewModel
 
 class TicTacToeView(val viewModel: TicTacToeViewModel) : VBox() {
