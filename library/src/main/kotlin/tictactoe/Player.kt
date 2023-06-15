@@ -10,11 +10,18 @@ interface IPlayer {
 }
 
 /* CPU player adapted from https://github.com/mariscallzn/KotlinTicTacToe */
-class ComputerPlayer(private val playerId: Int) : IPlayer {
+class ComputerPlayer(private val playerIndex: Int) : IPlayer {
+    companion object {
+        @JvmStatic
+        fun valueOf(value: String): ComputerPlayer {
+            return ComputerPlayer(value.toInt())
+        }
+    }
+
     override val id: Int = 1
     override val name: String = "CPU"
 
-    private val opposingPlayer = if (playerId == 1) 2 else 1
+    private val opposingPlayer = if (playerIndex == 1) 2 else 1
     private var cells = arrayOf(
         arrayOf(0, 0, 0),
         arrayOf(0, 0, 0),
@@ -23,7 +30,7 @@ class ComputerPlayer(private val playerId: Int) : IPlayer {
 
     override fun turn(game: ITicTacToe) {
         setCells(game)
-        val position = minimax(7, playerId)
+        val position = minimax(7, playerIndex)
         game.turnFor(this, 3 * position[1] + position[2] + 1)
     }
 
@@ -38,7 +45,7 @@ class ComputerPlayer(private val playerId: Int) : IPlayer {
     private fun minimax(depth: Int, player: Int): Array<Int> {
         val nextMoves: MutableList<Array<Int>> = generateMoves()
 
-        var bestScore = when (playerId) {
+        var bestScore = when (playerIndex) {
             player -> Int.MIN_VALUE
             else -> Int.MAX_VALUE
         }
@@ -52,7 +59,7 @@ class ComputerPlayer(private val playerId: Int) : IPlayer {
             nextMoves.forEach {
                 cells[it[0]][it[1]] = player
 
-                if (player == playerId) {
+                if (player == playerIndex) {
                     currentScore = minimax(depth - 1, opposingPlayer)[0]
                     if (currentScore > bestScore) {
                         bestScore = currentScore
@@ -60,7 +67,7 @@ class ComputerPlayer(private val playerId: Int) : IPlayer {
                         bestCol = it[1]
                     }
                 } else {
-                    currentScore = minimax(depth - 1, playerId)[0]
+                    currentScore = minimax(depth - 1, playerIndex)[0]
                     if (currentScore < bestScore) {
                         bestScore = currentScore
                         bestRow = it[0]
@@ -83,7 +90,7 @@ class ComputerPlayer(private val playerId: Int) : IPlayer {
             cells[2][0], cells[2][1], cells[2][2]
         )
 
-        if (TicTacToe.hasWon(playerId, linearBoard) || TicTacToe.hasWon(opposingPlayer, linearBoard)) {
+        if (TicTacToe.hasWon(playerIndex, linearBoard) || TicTacToe.hasWon(opposingPlayer, linearBoard)) {
             return nextMoves
         }
 
@@ -112,13 +119,13 @@ class ComputerPlayer(private val playerId: Int) : IPlayer {
     private fun evaluateLine(row1: Int, col1: Int, row2: Int, col2: Int, row3: Int, col3: Int): Int {
         var score = 0
 
-        if (cells[row1][col1] == playerId) {
+        if (cells[row1][col1] == playerIndex) {
             score = 1
         } else if (cells[row1][col1] == opposingPlayer) {
             score = -1
         }
 
-        if (cells[row2][col2] == playerId) {
+        if (cells[row2][col2] == playerIndex) {
             if (score == 1) {
                 score = 10
             } else if (score == -1) {
@@ -136,7 +143,7 @@ class ComputerPlayer(private val playerId: Int) : IPlayer {
             }
         }
 
-        if (cells[row3][col3] == playerId) {
+        if (cells[row3][col3] == playerIndex) {
             if (score > 0) {
                 score *= 10
             } else if (score < 0) {
