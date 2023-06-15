@@ -4,10 +4,12 @@ import Database
 import org.json.JSONArray
 import org.json.JSONObject
 
+sealed class GameEndState(message: String) : Exception(message)
+
 object InvalidTurn: Exception()
 object InvalidPlayer: Exception()
-object GameDraw: Exception()
-class GameEnd(val winner: IPlayer, val loser: IPlayer): Exception()
+object GameDraw: GameEndState("Game has ended in a draw")
+class GameEnd(val winner: IPlayer, val loser: IPlayer): GameEndState("${winner.name} won!")
 
 interface ITicTacToe {
     val player1: IPlayer
